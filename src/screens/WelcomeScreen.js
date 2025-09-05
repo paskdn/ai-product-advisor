@@ -8,13 +8,14 @@ import {
   Pressable,
   Linking,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 const handleEmail = () => {
   const subject = encodeURIComponent(
     "🚀 Let's talk - Senior Full Stack Developer",
   );
   const body = encodeURIComponent(
-    `Hi Kuladeepu,\n\nWe saw your AI Product Advisor demo and want to explore a Senior Full Stack Developer opportunity.\n\nCompany: \nRole Focus: \nTarget Start: \n\nDrop in anything you'd need from us ahead of a call.\n\nCheers,\n<Your Name>`,
+    `Hi Kuladeepu,\n\nWe saw your AI Product Advisor demo and want to explore a Senior Full Stack Developer opportunity.\n\n...`,
   );
   Linking.openURL(
     `mailto:kuladeepu@outlook.com?subject=${subject}&body=${body}`,
@@ -199,18 +200,27 @@ const WelcomeScreen = ({ navigation }) => {
           ]}
         >
           <View style={styles.hireCard}>
-            <Text style={styles.hireTitle}>👋 Like what you see?</Text>
+            <TouchableOpacity onPress={hideHire} style={styles.closeIconButton}>
+              <Ionicons name="close" size={20} color="#9ca3af" />
+            </TouchableOpacity>
+            <Text style={styles.hireTitle}>✨ Impressive, right?</Text>
             <Text style={styles.hireText}>
-              Shipped this fast, clean, and end‑to‑end. Want that momentum on
-              your team?
+              This AI-powered product advisor was built with React Native, smart
+              recommendations, and smooth UX. Looking for this level of quality
+              on your team?
             </Text>
             <TouchableOpacity onPress={handleEmail} style={styles.emailButton}>
-              <Text style={styles.emailButtonText}>
-                Email me: kuladeepu@outlook.com
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={hideHire} style={styles.closeButton}>
-              <Text style={styles.closeButtonText}>Close</Text>
+              <View style={styles.emailContent}>
+                <Text style={styles.emailButtonText}>
+                  kuladeepu@outlook.com
+                </Text>
+                <Ionicons
+                  name="open-outline"
+                  size={16}
+                  color="#10b981"
+                  style={styles.openIcon}
+                />
+              </View>
             </TouchableOpacity>
           </View>
         </Animated.View>
@@ -320,6 +330,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 6 },
+    position: "relative",
   },
   hireTitle: {
     fontSize: 18,
@@ -340,24 +351,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 10,
-    marginBottom: 14,
+  },
+  emailContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   emailButtonText: {
     color: "#10b981",
     fontSize: 13,
     fontWeight: "600",
+    flex: 1,
   },
-  closeButton: {
-    alignSelf: "flex-start",
-    backgroundColor: "#10b981",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+  openIcon: {
+    marginLeft: 8,
+  },
+  closeIconButton: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    padding: 4,
     borderRadius: 20,
-  },
-  closeButtonText: {
-    color: "#FFFFFF",
-    fontWeight: "600",
-    fontSize: 14,
+    backgroundColor: "rgba(156, 163, 175, 0.1)",
   },
   pulseRing: {
     position: "absolute",

@@ -1,6 +1,4 @@
 import React, { useState, useRef, useEffect } from "react";
-import { InteractionManager } from "react-native";
-import { Linking } from "react-native";
 import {
   View,
   Text,
@@ -8,17 +6,18 @@ import {
   StyleSheet,
   Animated,
   Pressable,
+  Linking,
 } from "react-native";
 
 const handleEmail = () => {
   const subject = encodeURIComponent(
-    "🚀 Let's talk - Senior Full Stack Developer"
+    "🚀 Let's talk - Senior Full Stack Developer",
   );
   const body = encodeURIComponent(
-    `Hi Kuladeepu,\n\nWe saw your AI Product Advisor demo and want to explore a Senior Full Stack Developer opportunity.\n\nCompany: \nRole Focus: \nTarget Start: \n\nDrop in anything you'd need from us ahead of a call.\n\nCheers,\n<Your Name>`
+    `Hi Kuladeepu,\n\nWe saw your AI Product Advisor demo and want to explore a Senior Full Stack Developer opportunity.\n\nCompany: \nRole Focus: \nTarget Start: \n\nDrop in anything you'd need from us ahead of a call.\n\nCheers,\n<Your Name>`,
   );
   Linking.openURL(
-    `mailto:kuladeepu@outlook.com?subject=${subject}&body=${body}`
+    `mailto:kuladeepu@outlook.com?subject=${subject}&body=${body}`,
   );
 };
 
@@ -46,7 +45,7 @@ const WelcomeScreen = ({ navigation }) => {
             duration: 1800,
             useNativeDriver: true,
           }),
-        ])
+        ]),
       ).start();
     };
     const raf = requestAnimationFrame(start);
@@ -54,7 +53,7 @@ const WelcomeScreen = ({ navigation }) => {
       cancelled = true;
       cancelAnimationFrame(raf);
     };
-  }, []);
+  }, [pulse]);
 
   useEffect(() => {
     const sequence = Animated.loop(
@@ -71,11 +70,11 @@ const WelcomeScreen = ({ navigation }) => {
           useNativeDriver: true,
         }),
         Animated.delay(1000),
-      ])
+      ]),
     );
     sequence.start();
     return () => sequence.stop();
-  }, []);
+  }, [hintPulse]);
 
   const ringScale = pulse.interpolate({
     inputRange: [0, 1],
@@ -135,7 +134,6 @@ const WelcomeScreen = ({ navigation }) => {
     <View style={styles.container}>
       <View style={styles.logoContainer}>
         <Pressable
-          accessibilityLabel="AI Logo"
           onPressIn={animatePressIn}
           onPressOut={animatePressOut}
           onLongPress={revealHire}
@@ -170,8 +168,8 @@ const WelcomeScreen = ({ navigation }) => {
       <Text style={styles.heading}>Find your perfect product.</Text>
 
       <Text style={styles.subtitle}>
-        Tell us what you're looking for, and our AI will find the best options
-        for you.
+        Tell us what you&apos;re looking for, and our AI will find the best
+        options for you.
       </Text>
 
       <TouchableOpacity
@@ -206,20 +204,12 @@ const WelcomeScreen = ({ navigation }) => {
               Shipped this fast, clean, and end‑to‑end. Want that momentum on
               your team?
             </Text>
-            <TouchableOpacity
-              onPress={handleEmail}
-              style={styles.emailButton}
-              accessibilityLabel="Email to hire"
-            >
+            <TouchableOpacity onPress={handleEmail} style={styles.emailButton}>
               <Text style={styles.emailButtonText}>
                 Email me: kuladeepu@outlook.com
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={hideHire}
-              style={styles.closeButton}
-              accessibilityLabel="Close hire me card"
-            >
+            <TouchableOpacity onPress={hideHire} style={styles.closeButton}>
               <Text style={styles.closeButtonText}>Close</Text>
             </TouchableOpacity>
           </View>

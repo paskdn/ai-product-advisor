@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
-import DarkAlert from "../components/DarkAlert";
+import { DarkAlert } from "../components/DarkAlert";
 
 const AlertContext = createContext();
 
@@ -25,7 +25,7 @@ export const AlertProvider = ({ children }) => {
           text: a.text || "OK",
           onPress: a.onPress,
           tone: a.tone || (a.style === "destructive" ? "destructive" : a.tone),
-        })
+        }),
       ),
     });
   }, []);

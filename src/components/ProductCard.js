@@ -1,95 +1,100 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  formatPrice,
-  getConfidenceColor,
-  formatConfidencePercentage,
-} from "../utils/formatters";
 import { UI_TEXT } from "../utils/constants";
 import { useFavorites } from "../context/FavoritesContext";
 
-const ProductCard = React.memo(
-  ({
-    product,
-    onPress,
-    showReason = false,
-    reason = "",
-    confidence,
-    showFavoriteButton = true,
-  }) => {
-    const { toggleFavorite, isFavorite } = useFavorites();
-    const hasConfidence = confidence !== undefined && confidence !== null;
+const formatPrice = (price) => {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(price);
+};
 
-    const handleFavoritePress = (e) => {
-      e.stopPropagation();
-      toggleFavorite(product);
-    };
+const getConfidenceColor = (confidence) => {
+  if (confidence >= 0.8) return "#4CAF50";
+  if (confidence >= 0.6) return "#FF9800";
+  return "#F44336";
+};
 
-    return (
-      <TouchableOpacity
-        style={styles.card}
-        onPress={onPress}
-        activeOpacity={0.7}
-        accessibilityRole="button"
-        accessibilityLabel={`View details for ${product.product_name} by ${product.brand}`}
-      >
-        <View style={styles.header}>
-          <View style={styles.titleContainer}>
-            <Text style={styles.productName} numberOfLines={2}>
-              {product.product_name}
-            </Text>
-            {hasConfidence && (
-              <View style={styles.matchIndicator}>
-                <Text
-                  style={[
-                    styles.matchText,
-                    { color: getConfidenceColor(confidence) },
-                  ]}
-                >
-                  {formatConfidencePercentage(confidence)}% match
-                </Text>
-              </View>
-            )}
-          </View>
-          <View style={styles.priceContainer}>
-            <Text style={styles.price}>{formatPrice(product.price)}</Text>
-            {showFavoriteButton && (
-              <TouchableOpacity
-                onPress={handleFavoritePress}
-                style={styles.favoriteButton}
-                activeOpacity={0.7}
-                hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
+const formatConfidencePercentage = (confidence) => {
+  return Math.round(confidence * 100);
+};
+
+const ProductCard = React.memo(function ProductCard({
+  product,
+  onPress,
+  showReason = false,
+  reason = "",
+  confidence,
+  showFavoriteButton = true,
+}) {
+  const { toggleFavorite, isFavorite } = useFavorites();
+  const hasConfidence = confidence !== undefined && confidence !== null;
+
+  const handleFavoritePress = (e) => {
+    e.stopPropagation();
+    toggleFavorite(product);
+  };
+
+  return (
+    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
+      <View style={styles.header}>
+        <View style={styles.titleContainer}>
+          <Text style={styles.productName} numberOfLines={2}>
+            {product.product_name}
+          </Text>
+          {hasConfidence && (
+            <View style={styles.matchIndicator}>
+              <Text
+                style={[
+                  styles.matchText,
+                  { color: getConfidenceColor(confidence) },
+                ]}
               >
-                <Ionicons
-                  name={isFavorite(product.id) ? "heart" : "heart-outline"}
-                  size={20}
-                  color={isFavorite(product.id) ? "#ef4444" : "#9ca3af"}
-                />
-              </TouchableOpacity>
-            )}
-          </View>
+                {formatConfidencePercentage(confidence)}% match
+              </Text>
+            </View>
+          )}
         </View>
-
-        <View style={styles.metaContainer}>
-          <Text style={styles.brand}>{product.brand}</Text>
-          <Text style={styles.category}>{product.category}</Text>
+        <View style={styles.priceContainer}>
+          <Text style={styles.price}>{formatPrice(product.price)}</Text>
+          {showFavoriteButton && (
+            <TouchableOpacity
+              onPress={handleFavoritePress}
+              style={styles.favoriteButton}
+              activeOpacity={0.7}
+              hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
+            >
+              <Ionicons
+                name={isFavorite(product.id) ? "heart" : "heart-outline"}
+                size={20}
+                color={isFavorite(product.id) ? "#ef4444" : "#9ca3af"}
+              />
+            </TouchableOpacity>
+          )}
         </View>
+      </View>
 
-        <Text style={styles.description} numberOfLines={3}>
-          {product.description}
-        </Text>
+      <View style={styles.metaContainer}>
+        <Text style={styles.brand}>{product.brand}</Text>
+        <Text style={styles.category}>{product.category}</Text>
+      </View>
 
-        {showReason && reason && (
-          <View style={styles.reasonContainer}>
-            <Text style={styles.reasonLabel}>{UI_TEXT.REASON_LABEL}</Text>
-            <Text style={styles.reason}>{reason}</Text>
-          </View>
-        )}
-      </TouchableOpacity>
-    );
-  }
-);
+      <Text style={styles.description} numberOfLines={3}>
+        {product.description}
+      </Text>
+
+      {showReason && reason && (
+        <View style={styles.reasonContainer}>
+          <Text style={styles.reasonLabel}>{UI_TEXT.REASON_LABEL}</Text>
+          <Text style={styles.reason}>{reason}</Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+});
 
 const styles = StyleSheet.create({
   card: {

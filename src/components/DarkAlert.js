@@ -40,7 +40,7 @@ export const DarkAlert = ({
         useNativeDriver: true,
       }).start();
     }
-  }, [visible]);
+  }, [opacity, scale, visible]);
 
   const handlePress = (a) => {
     a.onPress && a.onPress();

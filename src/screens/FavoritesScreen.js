@@ -22,7 +22,7 @@ const FavoritesScreen = ({ navigation }) => {
     return favorites.filter(
       (item) =>
         item.product_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.brand.toLowerCase().includes(searchQuery.toLowerCase())
+        item.brand.toLowerCase().includes(searchQuery.toLowerCase()),
     );
   }, [favorites, searchQuery]);
 
@@ -40,10 +40,10 @@ const FavoritesScreen = ({ navigation }) => {
               removeFromFavorites(productId);
             },
           },
-        ]
+        ],
       );
     },
-    [removeFromFavorites, showAlert]
+    [removeFromFavorites, showAlert],
   );
 
   const handleClearAll = useCallback(() => {
@@ -59,7 +59,7 @@ const FavoritesScreen = ({ navigation }) => {
             clearAllFavorites();
           },
         },
-      ]
+      ],
     );
   }, [clearAllFavorites, showAlert]);
 
@@ -67,7 +67,7 @@ const FavoritesScreen = ({ navigation }) => {
     (product) => {
       navigation.navigate("ProductDetails", { product });
     },
-    [navigation]
+    [navigation],
   );
 
   const renderFavoriteItem = useCallback(
@@ -99,7 +99,7 @@ const FavoritesScreen = ({ navigation }) => {
         </TouchableOpacity>
       </TouchableOpacity>
     ),
-    [removeFavorite, handleProductPress]
+    [removeFavorite, handleProductPress],
   );
 
   const renderEmptyState = useCallback(
@@ -113,7 +113,7 @@ const FavoritesScreen = ({ navigation }) => {
         </Text>
       </View>
     ),
-    []
+    [],
   );
 
   return (

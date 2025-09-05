@@ -5,9 +5,12 @@ import {
   SYSTEM_MESSAGE,
   RESPONSE_SCHEMA,
 } from "../utils/constants";
-import { formatCatalogForPrompt } from "../utils/productUtils";
 
 const openai = new OpenAI(OPENAI_CONFIG);
+
+const formatCatalogForPrompt = (catalog) => {
+  return JSON.stringify(catalog, null, 2);
+};
 
 export const generatePrompt = (userQuery, catalog) => {
   const catalogText = formatCatalogForPrompt(catalog);

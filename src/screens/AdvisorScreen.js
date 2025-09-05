@@ -12,13 +12,55 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { PRODUCT_CATALOG } from "../data/catalog";
 import { getProductRecommendations } from "../services/aiService";
-import {
-  validateSearchQuery,
-  processRecommendations,
-  generateProductKey,
-  ERROR_MESSAGES,
-} from "../utils";
+import { ERROR_MESSAGES } from "../utils";
 import { useAlert } from "../context/AlertContext";
+import SkeletonProductCard from "../components/SkeletonProductCard";
+import AdvisorProductCard from "../components/AdvisorProductCard";
+
+const generateProductKey = (item, index) => {
+  return `${item.brand}-${item.product_name}-${index}`;
+};
+
+const validateSearchQuery = (query) => {
+  if (!query || !query.trim()) {
+    return { isValid: false, error: "Please enter a search query" };
+  }
+  if (query.trim().length < 3) {
+    return {
+      isValid: false,
+      error: "Query must be at least 3 characters long",
+    };
+  }
+  return { isValid: true };
+};
+
+const findProductInCatalog = (catalog, productName, brand) => {
+  return catalog.find(
+    (p) =>
+      p.product_name.toLowerCase() === productName.toLowerCase() &&
+      p.brand.toLowerCase() === brand.toLowerCase(),
+  );
+};
+
+const processRecommendations = (recommendations, catalog) => {
+  return recommendations
+    .map((rec) => {
+      const product = findProductInCatalog(
+        catalog,
+        rec.product_name,
+        rec.brand,
+      );
+      return product
+        ? {
+            ...product,
+            reason: rec.reason,
+            confidence: rec.confidence_score,
+          }
+        : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.confidence - a.confidence);
+};
 
 const AdvisorScreen = ({ navigation }) => {
   const { showAlert } = useAlert();
@@ -26,6 +68,8 @@ const AdvisorScreen = ({ navigation }) => {
   const [recommendations, setRecommendations] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [expandedReasons, setExpandedReasons] = useState({});
+  const [lastSearchQuery, setLastSearchQuery] = useState("");
+  const [hasSearched, setHasSearched] = useState(false);
 
   const searchProducts = async () => {
     const validation = validateSearchQuery(query);
@@ -35,17 +79,22 @@ const AdvisorScreen = ({ navigation }) => {
     }
 
     Keyboard.dismiss();
+
+    setRecommendations([]);
+    setExpandedReasons({});
     setIsLoading(true);
+    setLastSearchQuery(query);
+    setHasSearched(true);
 
     try {
       const aiResponse = await getProductRecommendations(
         query,
-        PRODUCT_CATALOG
+        PRODUCT_CATALOG,
       );
       const limited = (aiResponse.recommendations || []).slice(0, 5);
       const matchedProducts = processRecommendations(limited, PRODUCT_CATALOG);
       setRecommendations(matchedProducts);
-    } catch (error) {
+    } catch (_error) {
       showAlert("Error", ERROR_MESSAGES.API_ERROR);
     } finally {
       setIsLoading(false);
@@ -63,61 +112,19 @@ const AdvisorScreen = ({ navigation }) => {
     (product) => {
       navigation.navigate("ProductDetails", { product });
     },
-    [navigation]
+    [navigation],
   );
 
   const renderProduct = useCallback(
     ({ item }) => (
-      <TouchableOpacity
-        style={styles.productCard}
-        onPress={() => handleProductPress(item)}
-        activeOpacity={0.7}
-      >
-        <View style={styles.productImage}>
-          <Ionicons name="image-outline" size={40} color="#9ca3af" />
-        </View>
-
-        <View style={styles.productInfo}>
-          <Text style={styles.brandText}>{item.brand}</Text>
-          <Text style={styles.productName}>{item.product_name}</Text>
-          <Text style={styles.price}>${item.price}</Text>
-          <Text style={styles.description} numberOfLines={2}>
-            {item.description}
-          </Text>
-
-          {item.reason && (
-            <View style={styles.reasonSection}>
-              <TouchableOpacity
-                style={styles.reasonToggle}
-                onPress={() => toggleReason(item.id)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.reasonToggleText}>Why this?</Text>
-                <Ionicons
-                  name={
-                    expandedReasons[item.id] ? "chevron-up" : "chevron-down"
-                  }
-                  size={16}
-                  color="#10b981"
-                />
-              </TouchableOpacity>
-
-              {expandedReasons[item.id] && (
-                <View style={styles.reasonContent}>
-                  <Text style={styles.reasonText}>{item.reason}</Text>
-                  {item.confidence && (
-                    <Text style={styles.confidenceText}>
-                      Match Score: {Math.round(item.confidence * 100)}%
-                    </Text>
-                  )}
-                </View>
-              )}
-            </View>
-          )}
-        </View>
-      </TouchableOpacity>
+      <AdvisorProductCard
+        item={item}
+        onPress={handleProductPress}
+        expandedReasons={expandedReasons}
+        onToggleReason={toggleReason}
+      />
     ),
-    [expandedReasons, toggleReason, handleProductPress]
+    [expandedReasons, toggleReason, handleProductPress],
   );
 
   return (
@@ -160,9 +167,21 @@ const AdvisorScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {recommendations.length > 0 && (
+      {isLoading && hasSearched && (
         <View style={styles.resultsSection}>
-          <Text style={styles.sectionTitle}>Recommended Products</Text>
+          <View style={styles.productsList}>
+            {[1, 2, 3].map((index) => (
+              <SkeletonProductCard key={index} />
+            ))}
+          </View>
+        </View>
+      )}
+
+      {!isLoading && recommendations.length > 0 && (
+        <View style={styles.resultsSection}>
+          <Text style={styles.sectionTitle}>
+            {recommendations.length} Recommendations...
+          </Text>
 
           <FlatList
             data={recommendations}
@@ -174,10 +193,42 @@ const AdvisorScreen = ({ navigation }) => {
         </View>
       )}
 
-      {!isLoading && recommendations.length === 0 && query.trim() && (
+      {!isLoading && recommendations.length === 0 && hasSearched && (
         <View style={styles.emptyState}>
+          <Ionicons
+            name="search-outline"
+            size={48}
+            color="#6b7280"
+            style={{ marginBottom: 16 }}
+          />
+          <Text style={styles.emptyTitle}>No matches found</Text>
           <Text style={styles.emptyText}>
-            No recommendations found. Try rephrasing your query.
+            Try different keywords or be more specific about your needs.
+          </Text>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={() => setQuery("")}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.retryButtonText}>Try a new search</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {!hasSearched && !isLoading && (
+        <View style={styles.welcomeState}>
+          <Ionicons
+            name="sparkles"
+            size={64}
+            color="#10b981"
+            style={{ marginBottom: 24 }}
+          />
+          <Text style={styles.welcomeTitle}>AI Product Advisor</Text>
+          <Text style={styles.welcomeText}>
+            Describe what you&apos;re looking for and let AI find the perfect
+            products for you.{"\n\n"}
+            Try: &quot;Budget laptop for programming&quot; or &quot;Wireless
+            headphones for gym&quot;
           </Text>
         </View>
       )}
@@ -250,92 +301,55 @@ const styles = StyleSheet.create({
   productsList: {
     paddingBottom: 20,
   },
-  productCard: {
-    backgroundColor: "#1f2937",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    flexDirection: "row",
-    borderWidth: 1,
-    borderColor: "#374151",
-  },
-  productImage: {
-    width: 80,
-    height: 80,
-    backgroundColor: "#374151",
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 16,
-  },
-  productInfo: {
-    flex: 1,
-  },
-  brandText: {
-    fontSize: 12,
-    color: "#9ca3af",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-    marginBottom: 4,
-  },
-  productName: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#FFFFFF",
-    marginBottom: 4,
-  },
-  price: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#10b981",
-    marginBottom: 8,
-  },
-  description: {
-    fontSize: 14,
-    color: "#9ca3af",
-    lineHeight: 20,
-    marginBottom: 12,
-  },
-  reasonSection: {
-    borderTopWidth: 1,
-    borderTopColor: "#374151",
-    paddingTop: 12,
-  },
-  reasonToggle: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  reasonToggleText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#10b981",
-  },
-  reasonContent: {
-    marginTop: 8,
-    paddingTop: 8,
-  },
-  reasonText: {
-    fontSize: 14,
-    color: "#d1d5db",
-    lineHeight: 20,
-    marginBottom: 4,
-  },
-  confidenceText: {
-    fontSize: 12,
-    color: "#9ca3af",
-    fontStyle: "italic",
-  },
   emptyState: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 40,
   },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#FFFFFF",
+    marginBottom: 8,
+    textAlign: "center",
+  },
   emptyText: {
     fontSize: 16,
     color: "#9ca3af",
     textAlign: "center",
+    lineHeight: 24,
+    marginBottom: 24,
+  },
+  retryButton: {
+    backgroundColor: "#10b981",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  welcomeState: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 40,
+  },
+  welcomeTitle: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  welcomeText: {
+    fontSize: 16,
+    color: "#9ca3af",
+    textAlign: "center",
+    lineHeight: 24,
   },
   inlineLoadingWrapper: {
     flexDirection: "row",

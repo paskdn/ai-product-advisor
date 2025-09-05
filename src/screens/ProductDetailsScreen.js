@@ -25,7 +25,7 @@ const ProductDetailsScreen = ({ navigation, route }) => {
     showAlert(
       "Favorites",
       wasAdded ? "Added to favorites!" : "Removed from favorites!",
-      [{ text: "OK" }]
+      [{ text: "OK" }],
     );
   }, [product, toggleFavorite, isFavorite, showAlert]);
 

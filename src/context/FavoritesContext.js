@@ -41,7 +41,7 @@ export const FavoritesProvider = ({ children }) => {
     (productId) => {
       return favorites.some((fav) => fav.id === productId);
     },
-    [favorites]
+    [favorites],
   );
 
   const clearAllFavorites = useCallback(() => {

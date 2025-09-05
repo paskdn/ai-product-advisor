@@ -1,35 +1,52 @@
-import { Text, SafeAreaView, StyleSheet } from 'react-native';
+import React from "react";
+import { StyleSheet, StatusBar } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-// You can import supported modules from npm
-import { Card } from 'react-native-paper';
+import TabNavigator from "./src/navigation/TabNavigator";
+import AdvisorScreen from "./src/screens/AdvisorScreen";
+import ProductDetailsScreen from "./src/screens/ProductDetailsScreen";
+import { FavoritesProvider } from "./src/context/FavoritesContext";
+import { AlertProvider } from "./src/context/AlertContext";
 
-// or any files within the Snack
-import AssetExample from './components/AssetExample';
+const Stack = createStackNavigator();
 
 export default function App() {
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.paragraph}>
-        Change code in the editor and watch it change on your phone! Save to get a shareable url.
-      </Text>
-      <Card>
-        <AssetExample />
-      </Card>
-    </SafeAreaView>
+    <SafeAreaProvider>
+      <AlertProvider>
+        <FavoritesProvider>
+          <NavigationContainer>
+            <SafeAreaView style={styles.container}>
+              <StatusBar
+                barStyle="light-content"
+                backgroundColor="#1f2937"
+                translucent={false}
+              />
+              <Stack.Navigator
+                screenOptions={{
+                  headerShown: false,
+                }}
+              >
+                <Stack.Screen name="MainTabs" component={TabNavigator} />
+                <Stack.Screen name="Advisor" component={AdvisorScreen} />
+                <Stack.Screen
+                  name="ProductDetails"
+                  component={ProductDetailsScreen}
+                />
+              </Stack.Navigator>
+            </SafeAreaView>
+          </NavigationContainer>
+        </FavoritesProvider>
+      </AlertProvider>
+    </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    backgroundColor: '#ecf0f1',
-    padding: 8,
-  },
-  paragraph: {
-    margin: 24,
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    backgroundColor: "#1f2937",
   },
 });

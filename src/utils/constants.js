@@ -9,44 +9,6 @@ export const AI_REQUEST_CONFIG = {
   max_tokens: 2000,
 };
 
-export const SYSTEM_MESSAGE =
-  "You are an expert product advisor that helps users find the best products based on their natural language descriptions of needs.";
-
-export const RESPONSE_SCHEMA = {
-  type: "json_schema",
-  json_schema: {
-    name: "product_recommendations",
-    strict: true,
-    schema: {
-      type: "object",
-      properties: {
-        recommendations: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              product_name: { type: "string" },
-              brand: { type: "string" },
-              reason: { type: "string" },
-              confidence_score: {
-                type: "number",
-                minimum: 0,
-                maximum: 1,
-              },
-            },
-            required: ["product_name", "brand", "reason", "confidence_score"],
-            additionalProperties: false,
-          },
-        },
-        summary: { type: "string" },
-        search_context: { type: "string" },
-      },
-      required: ["recommendations", "summary", "search_context"],
-      additionalProperties: false,
-    },
-  },
-};
-
 export const EXAMPLE_QUERIES = [
   "Lightweight laptop for travel",
   "Budget smartphone with good camera",

@@ -1,8 +1,13 @@
 export {
+  extractProductId,
+  validateSearchQuery,
+  findProductById,
+  processRecommendations,
+} from "./recommendationUtils";
+
+export {
   OPENAI_CONFIG,
   AI_REQUEST_CONFIG,
-  SYSTEM_MESSAGE,
-  RESPONSE_SCHEMA,
   EXAMPLE_QUERIES,
   ERROR_MESSAGES,
   UI_TEXT,

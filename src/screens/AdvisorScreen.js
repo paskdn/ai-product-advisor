@@ -12,55 +12,15 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { PRODUCT_CATALOG } from "../data/catalog";
 import { getProductRecommendations } from "../services/aiService";
-import { ERROR_MESSAGES } from "../utils";
+import {
+  ERROR_MESSAGES,
+  extractProductId,
+  validateSearchQuery,
+  processRecommendations,
+} from "../utils";
 import { useAlert } from "../context/AlertContext";
 import SkeletonProductCard from "../components/SkeletonProductCard";
 import AdvisorProductCard from "../components/AdvisorProductCard";
-
-const generateProductKey = (item, index) => {
-  return `${item.brand}-${item.product_name}-${index}`;
-};
-
-const validateSearchQuery = (query) => {
-  if (!query || !query.trim()) {
-    return { isValid: false, error: "Please enter a search query" };
-  }
-  if (query.trim().length < 3) {
-    return {
-      isValid: false,
-      error: "Query must be at least 3 characters long",
-    };
-  }
-  return { isValid: true };
-};
-
-const findProductInCatalog = (catalog, productName, brand) => {
-  return catalog.find(
-    (p) =>
-      p.product_name.toLowerCase() === productName.toLowerCase() &&
-      p.brand.toLowerCase() === brand.toLowerCase(),
-  );
-};
-
-const processRecommendations = (recommendations, catalog) => {
-  return recommendations
-    .map((rec) => {
-      const product = findProductInCatalog(
-        catalog,
-        rec.product_name,
-        rec.brand,
-      );
-      return product
-        ? {
-            ...product,
-            reason: rec.reason,
-            confidence: rec.confidence_score,
-          }
-        : null;
-    })
-    .filter(Boolean)
-    .sort((a, b) => b.confidence - a.confidence);
-};
 
 const AdvisorScreen = ({ navigation }) => {
   const { showAlert } = useAlert();
@@ -68,7 +28,6 @@ const AdvisorScreen = ({ navigation }) => {
   const [recommendations, setRecommendations] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [expandedReasons, setExpandedReasons] = useState({});
-  const [lastSearchQuery, setLastSearchQuery] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
 
   const searchProducts = async () => {
@@ -83,7 +42,6 @@ const AdvisorScreen = ({ navigation }) => {
     setRecommendations([]);
     setExpandedReasons({});
     setIsLoading(true);
-    setLastSearchQuery(query);
     setHasSearched(true);
 
     try {
@@ -186,7 +144,7 @@ const AdvisorScreen = ({ navigation }) => {
           <FlatList
             data={recommendations}
             renderItem={renderProduct}
-            keyExtractor={generateProductKey}
+            keyExtractor={extractProductId}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.productsList}
           />
@@ -246,6 +204,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
+    paddingTop: 20,
     paddingBottom: 20,
     backgroundColor: "#1f2937",
   },
